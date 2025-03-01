@@ -93,7 +93,7 @@ print(latex_table)
 # PLOT THRESHOLD BARCHART SIDE BY SIDE #
 ########################################
 
-plot_thresholds_comparison(thresholds_same, thresholds_different)
+plot_thresholds_comparison(thresholds_same, thresholds_different, filename="../figures/mnist_thresholds_comparison.png", save=True)
 
 ######################################
 # PLOT ENTROPY BARCHART SIDE BY SIDE #

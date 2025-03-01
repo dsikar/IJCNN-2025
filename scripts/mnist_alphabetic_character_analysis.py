@@ -36,8 +36,8 @@ thresholds_different, indexes_different = find_thresholds_digits_only(data_np, s
 # PLOT THRESHOLD BARCHART SIDE BY SIDE #
 ########################################
 
-plot_thresholds_comparison(thresholds_same, thresholds_different, prefix="English Handwritten Characters Digits Only ", filename="english_handwritten_characters_digits_only_thresholds.png", save=True)
-# Saved as english_handwritten_characters_digits_only_thresholds.png
+plot_thresholds_comparison(thresholds_same, thresholds_different, prefix="English Handwritten Characters Digits Only ", filename="../figures/english_handwritten_characters_digits_only_thresholds.png", save=True)
+# Saved as figures/english_handwritten_characters_digits_only_thresholds.png
 
 ####################
 # CONFUSION MATRIX #
@@ -45,8 +45,8 @@ plot_thresholds_comparison(thresholds_same, thresholds_different, prefix="Englis
 
 # Confusion matrix for digits only
 confusion_matrix_digits = confusion_matrix(data_np, digits_only=True)
-plot_confusion_matrix(confusion_matrix_digits, prefix="English Handwritten Characters Digits Only ", filename="english_handwritten_characters_digits_only_confusion_matrix.png", save=True)
-# Saved as english_handwritten_characters_digits_only_confusion_matrix.png
+plot_confusion_matrix(confusion_matrix_digits, prefix="English Handwritten Characters Digits Only ", filename="../figures/english_handwritten_characters_digits_only_confusion_matrix.png", save=True)
+# Saved as figures/english_handwritten_characters_digits_only_confusion_matrix.png
 
 ################################################
 # ALPHABETIC CHARACTERS DISTANCES TO CENTROIDS #
@@ -54,8 +54,8 @@ plot_confusion_matrix(confusion_matrix_digits, prefix="English Handwritten Chara
 
 alpha_thresholds, alpha_indexes, alpha_avg_distances = find_thresholds_alphabetic_only(data_np)
 
-plot_alphabetic_distances(alpha_thresholds, alpha_avg_distances, prefix="English Handwritten Alphabetic Characters ", filename="english_handwritten_characters_alphabetic_only_thresholds", save=True)
-# Saved as english_handwritten_characters_alphabetic_only_thresholds.png
+plot_alphabetic_distances(alpha_thresholds, alpha_avg_distances, prefix="English Handwritten Alphabetic Characters ", filename="../figures/english_handwritten_characters_alphabetic_only_thresholds.png", save=True)
+# Saved as figures/english_handwritten_characters_alphabetic_only_thresholds.png
 
 ######################################### 
 # "MISCLASSIFIED" ALPHABETIC CHARACTERS #
@@ -65,8 +65,8 @@ directory = '/home/daniel/.cache/kagglehub/datasets/dhruvildave/english-handwrit
 png_files = get_png_files(directory)
 
 # Plot the closest alphabetic characters to each digit
-plot_closest_letters_to_digits(alpha_indexes, directory, png_files, alpha_thresholds, alpha_avg_distances, data_np, filename="closest_alphabetic_characters_to_each_digit.png", save=True)
-# Saved distance comparison plot as closest_alphabetic_characters_to_each_digit.png
+plot_closest_letters_to_digits(alpha_indexes, directory, png_files, alpha_thresholds, alpha_avg_distances, data_np, filename="../figures/closest_alphabetic_characters_to_each_digit.png", save=True)
+# Saved distance comparison plot as figures/closest_alphabetic_characters_to_each_digit.png
 
 # TODO
 #1. Fix character plot_softmax
