@@ -110,6 +110,16 @@ def get_mnist_img_array(filename, index, verbose = False):
     return image_array  
 
 def plot_image(image, title):
+    """
+    Display a grayscale image with the specified title.
+    
+    Parameters:
+    -----------
+    image : numpy.ndarray
+        The image array to display
+    title : str
+        The title to display above the image
+    """
     plt.imshow(image, cmap='gray')
     plt.title(title)
     plt.axis('off')
@@ -1194,6 +1204,19 @@ import numpy as np
 from scipy.spatial.distance import pdist
 
 def compute_centroid_distances(centroids):
+    """
+    Compute statistics on pairwise Euclidean distances between centroids.
+    
+    Parameters:
+    -----------
+    centroids : numpy.ndarray
+        Array of shape (n_centroids, dimensions) containing centroid vectors
+    
+    Returns:
+    --------
+    tuple
+        (min_distance, max_distance, mean_distance) statistics on the pairwise distances
+    """
     # Compute pairwise Euclidean distances
     pairwise_distances = pdist(centroids, metric='euclidean')
     
@@ -1565,7 +1588,19 @@ def create_visualization(threshold_stats):
 ###########################
 
 def get_num_pairs(n):
-    """Calculate number of unique pairs from n elements"""
+    """
+    Calculate number of unique pairs from n elements.
+    
+    Parameters:
+    -----------
+    n : int
+        Number of elements
+    
+    Returns:
+    --------
+    int
+        Number of unique pairs possible from n elements
+    """
     return (n * (n-1)) // 2
 
 get_num_pairs(10) # 45
@@ -1574,6 +1609,19 @@ import numpy as np
 from itertools import combinations
 
 def compute_pairwise_distances(centroids):
+    """
+    Compute all pairwise Euclidean distances between centroids.
+    
+    Parameters:
+    -----------
+    centroids : numpy.ndarray
+        Array of shape (n_centroids, dimensions) containing centroid vectors
+    
+    Returns:
+    --------
+    numpy.ndarray
+        Array of pairwise distances between all unique centroid pairs
+    """
     distances = []
     for i, j in combinations(range(len(centroids)), 2):
         dist = np.sqrt(np.sum((centroids[i] - centroids[j])**2))
@@ -1584,9 +1632,36 @@ def compute_pairwise_distances(centroids):
 import numpy as np
 
 def compute_meta_centroid_arithmetic(centroids):
+    """
+    Compute the arithmetic mean of all centroids (simple average).
+    
+    Parameters:
+    -----------
+    centroids : numpy.ndarray
+        Array of shape (n_centroids, dimensions) containing centroid vectors
+    
+    Returns:
+    --------
+    numpy.ndarray
+        The arithmetic meta-centroid vector
+    """
     return np.mean(centroids, axis=0)
 
 def compute_meta_centroid_weighted(centroids):
+    """
+    Compute a weighted average of centroids, with weights inversely proportional
+    to their average distance from other centroids.
+    
+    Parameters:
+    -----------
+    centroids : numpy.ndarray
+        Array of shape (n_centroids, dimensions) containing centroid vectors
+    
+    Returns:
+    --------
+    numpy.ndarray
+        The weighted meta-centroid vector
+    """
     n_centroids = len(centroids)
     distances = np.zeros((n_centroids, n_centroids))
     
@@ -1601,14 +1676,41 @@ def compute_meta_centroid_weighted(centroids):
     return np.average(centroids, weights=weights, axis=0)
 
 def compute_meta_centroid_geometric(centroids):
+    """
+    Compute the geometric mean of all centroids. Works by taking the 
+    element-wise logarithm, averaging, then exponentiating back.
+    
+    Parameters:
+    -----------
+    centroids : numpy.ndarray
+        Array of shape (n_centroids, dimensions) containing centroid vectors
+    
+    Returns:
+    --------
+    numpy.ndarray
+        The geometric meta-centroid vector, normalized to sum to 1
+    """
     log_centroids = np.log(centroids + np.finfo(float).eps)
     avg_log = np.mean(log_centroids, axis=0)
     unnormalized = np.exp(avg_log)
     return unnormalized / np.sum(unnormalized)
 
 
-# medoid
 def compute_meta_centroid_medoid(centroids):
+    """
+    Find the medoid centroid, which is the centroid with minimum total
+    distance to all other centroids.
+    
+    Parameters:
+    -----------
+    centroids : numpy.ndarray
+        Array of shape (n_centroids, dimensions) containing centroid vectors
+    
+    Returns:
+    --------
+    tuple
+        (medoid_centroid, medoid_index) - The medoid centroid vector and its index
+    """
     n_centroids = len(centroids)
     distances = np.zeros((n_centroids, n_centroids))
     
@@ -1635,6 +1737,21 @@ def compute_meta_centroid_medoid(centroids):
 ## store results
 
 def compute_avg_distance(centroid, centroids):
+    """
+    Compute the average Euclidean distance from a centroid to all centroids in a set.
+    
+    Parameters:
+    -----------
+    centroid : numpy.ndarray
+        The reference centroid vector
+    centroids : numpy.ndarray
+        Array of shape (n_centroids, dimensions) containing centroid vectors
+    
+    Returns:
+    --------
+    float
+        Average Euclidean distance from the reference centroid to all centroids
+    """
     return np.mean([np.sqrt(np.sum((c - centroid)**2)) for c in centroids])
 
 # meta_centroids = {
