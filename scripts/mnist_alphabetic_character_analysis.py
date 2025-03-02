@@ -36,7 +36,7 @@ thresholds_different, indexes_different = find_thresholds_digits_only(data_np, s
 # PLOT THRESHOLD BARCHART SIDE BY SIDE #
 ########################################
 
-plot_thresholds_comparison(thresholds_same, thresholds_different, prefix="English Handwritten Characters Digits Only ", filename="../figures/english_handwritten_characters_digits_only_thresholds.png", save=True)
+plot_thresholds_comparison(thresholds_same, thresholds_different, prefix="English Handwritten Characters Digits Only ", filename="figures/english_handwritten_characters_digits_only_thresholds.png", save=True)
 # Saved as figures/english_handwritten_characters_digits_only_thresholds.png
 
 ####################
@@ -256,6 +256,21 @@ np.save('data/grok_0.8_0.02_alphabetic_prediction_thresholds.npy', alpha_thresho
 # ALPHABETIC CHARACTERS PREDICTION HEATMAPS #
 #############################################
 
-# https://chatgpt.com/c/67c46b79-8f2c-800f-a137-5b64194514e0
+create_and_save_heatmaps(data_np, filename="../figures/english_handwritten_characters_x_confusion_matrix.png", save=True)
+# Saved alphabetic misclassifications figures/english_handwritten_characters_x_confusion_matrix.png
 
-filename="../figures/english_handwritten_characters_digits_only_confusion_matrix.png", save=True
+#############################################
+# NUMERIC CHARACTER SOFTMAX OUTPUT AVERAGES #
+#############################################
+
+digits_correct_match_condition = (data_np[:, 10] <= 9) & (data_np[:, 10] == data_np[:, 11])
+correct_digit_predictions = data_np[digits_correct_match_condition]
+digits_incorrect_match_condition = (data_np[:, 10] <= 9) & (data_np[:, 10] != data_np[:, 11])   
+incorrect_digit_predictions = data_np[digits_incorrect_match_condition]
+
+plot_digit_averages(correct_digit_predictions, incorrect_digit_predictions, color1='skyblue', color2='lightcoral', data="English Handwritten Characters Digits Only", title= "Softmax Average Distributions for Correct and Incorrect Digit Predictions", filename="figures/english_handwritten_characters_digit_softmax_averages.png", save=True)
+# Saved average softmax outputs for correct and incorrect digit predictiions. figures/english_handwritten_characters_digit_softmax_averages.png
+    
+################################################
+# ALPHABETIC CHARACTER SOFTMAX OUTPUT AVERAGES #
+################################################
