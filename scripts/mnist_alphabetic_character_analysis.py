@@ -274,3 +274,9 @@ plot_digit_averages(correct_digit_predictions, incorrect_digit_predictions, colo
 ################################################
 # ALPHABETIC CHARACTER SOFTMAX OUTPUT AVERAGES #
 ################################################
+
+alphabetic_characters= (data_np[:, 10] > 9)
+alphabetic_predictions = data_np[alphabetic_characters]
+
+plot_alphabetic_character_averages(alphabetic_predictions, color='lightcoral', data="English Handwritten Characters - Alphabetic Only", title="Softmax Average Distributions for Alphabetic Character Predictions", filename="figures/english_handwritten_characters_alphabetic_softmax_averages.png", save=True)
+# Saved average softmax outputs for incorrect alphabetic character predictions. figures/english_handwritten_characters_alphabetic_softmax_averages.png

@@ -2081,7 +2081,7 @@ def create_alphabetic_table(data_np):
       - Column 13: Distance to predicted class centroid
 
     The output table has 13 columns:
-      - Column 0: "Threshold" with values [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
+      - Column 0: "Threshold" with values [0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.02
       - Columns 1-10: Counts for each predicted digit (0-9) where the distance (column 13) is <= threshold.
       - Column 11: "TBT" (Total Below Threshold) = total rows with distance <= threshold.
       - Column 12: "TAT" (Total Above Threshold) = total rows with distance > threshold.
