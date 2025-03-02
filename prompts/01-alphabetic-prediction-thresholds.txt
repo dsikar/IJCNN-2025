@@ -1,0 +1,51 @@
+A numpy array data_np contains the following columns:
+
+- Columns 0-9: Softmax outputs
+- Column 10: True class
+- Column 11: Predicted class
+- Column 12: Distance to true class centroid
+- Column 13: Distance to predicted class centroid
+
+Where every row is related to a prediction of a Convolutional Neural Network trained on the MNIST dataset.
+
+Notice the columns are 0 indexed.
+
+The predictions contained in data_np are for the English Handwritten Characters "MNISTified" dataset, i.e. the original dataset was conformed to look like examples in the MNIST dataset. Classes are alphanumberic characters 0-9, A-Z, a-z, totalling 62 character classes.
+
+A row for a numeric character looks like:
+
+data_np[0]
+array([9.97543097e-01, 1.33918874e-07, 5.63467984e-05, 4.57849190e-08,
+       1.05705431e-05, 5.70987027e-07, 1.13680355e-04, 1.48702784e-05,
+       5.67646348e-05, 2.20390572e-03, 0.00000000e+00, 0.00000000e+00,
+       6.83514517e-03, 6.83514517e-03])
+       
+Where the highest value from columns 1 to 10 (indexed 0 to 9) is at index 0, meaning class index 0, which corresponds to digit 0 was predicted.
+Column 10 is the true class 0 and column 11 is the predicted class is also 0, meaning the prediction is correct.
+Column 12 is the distance to the true class "centroid" in a 10-dimensional space, where every MNIST class has a centroid, correponding to the average of all correctly predicted digits.
+Column 13 is the distance to the predicted class centroid. Since the prediction is correct, the values in columns 12 and 13 are the same.
+
+      
+A row for an alphabetic character looks like:
+
+data_np[2000]
+array([2.63437442e-02, 1.03594437e-04, 9.70119774e-01, 5.44607701e-06,
+       7.29561900e-04, 7.71395491e-07, 1.38946300e-04, 2.03652121e-03,
+       2.20767644e-04, 3.00990214e-04, 3.60000000e+01, 2.00000000e+00,
+                  nan, 2.72227570e-02])
+                  
+Is the case, the highest softmax output value is at index 2 meaning the model predicted digit 2. 
+Column 10 is the true class 36, which corresponds to the letter "a".
+Column 11 is 2, meaning the model predicted the "a" is 2.
+Column 12 is nan, because there is no centroid for "a".
+Column 13 is the distance to centroid 2.
+
+I need to create data for a table showing for alphabetic characters only, where:
+Column 1 is "Threshold": distance to class centroid, with values 0.9 to 0.1 in decrements of 0.1, and 0.05.
+Columns 2 to 11 are digits 0 to 9. Column 12 is "TBT" (Total below threshold) and Column 13 is "TAT" (Total above threshold).
+
+Append a function to scripts/helper_functions.py that takes data_np as an argument, and returns an array with the data for the table. 
+Append code to scripts/mnist_alphabetic_character_analysis.py to call the function you created.
+
+If you have any doubts, ask.
+

@@ -1954,3 +1954,307 @@ def print_validation_results(validations):
         elif 'correct_predictions_match' in v:
             print("\nCross-validation:")
             print(f"Correct predictions consistency: {v['correct_predictions_match']}")
+            
+# Claude 3.7 solution - written in Claude code            
+def create_alphabetic_prediction_threshold_table(data_np):
+    """
+    Creates a table showing alphabetic character predictions in relation to distance thresholds.
+    
+    Parameters:
+    -----------
+    data_np : numpy.ndarray
+        Array containing:
+        - Columns 0-9: Softmax outputs
+        - Column 10: True class
+        - Column 11: Predicted class
+        - Column 12: Distance to true class centroid
+        - Column 13: Distance to predicted class centroid
+        
+    Returns:
+    --------
+    numpy.ndarray
+        Array with rows representing different thresholds and columns representing:
+        - Column 0: Threshold values (0.9 to 0.1 in decrements of 0.1, and 0.05)
+        - Columns 1-10: Number of alphabetic chars predicted as digits 0-9 below threshold
+        - Column 11: TBT (Total below threshold)
+        - Column 12: TAT (Total above threshold)
+    """
+    # Define thresholds
+    thresholds = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
+    
+    # Initialize result array
+    # Columns: Threshold, Digits 0-9, TBT, TAT
+    result = np.zeros((len(thresholds), 13))
+    
+    # Filter to only include alphabetic characters (true labels 10-61)
+    alpha_mask = (data_np[:, 10] >= 10) & (data_np[:, 10] <= 61)
+    alpha_data = data_np[alpha_mask]
+    
+    # Total number of alphabetic characters
+    total_alpha = len(alpha_data)
+    
+    # For each threshold
+    for i, threshold in enumerate(thresholds):
+        # Set threshold value in first column
+        result[i, 0] = threshold
+        
+        # Track total below threshold across all digits
+        total_below_threshold = 0
+        
+        # For each digit (0-9)
+        for digit in range(10):
+            # Find alphabetic characters predicted as this digit
+            digit_mask = (alpha_data[:, 11] == digit)
+            alpha_pred_as_digit = alpha_data[digit_mask]
+            
+            # Count those below the threshold distance
+            # We use column 13 (distance to predicted class centroid)
+            below_threshold = np.sum(alpha_pred_as_digit[:, 13] < threshold)
+            
+            # Store in appropriate column (digit + 1 to account for threshold column)
+            result[i, digit + 1] = below_threshold
+            
+            # Add to total below threshold
+            total_below_threshold += below_threshold
+        
+        # Set TBT (Total Below Threshold)
+        result[i, 11] = total_below_threshold
+        
+        # Set TAT (Total Above Threshold)
+        result[i, 12] = total_alpha - total_below_threshold
+    
+    return result
+
+
+# https://chat.deepseek.com/a/chat/s/c0a4ad31-92ae-41cb-93cf-15f3530b71b9
+def generate_table(data_np):
+    # Filter rows where the true class is alphabetic (>=10)
+    alphabetic_mask = data_np[:, 10] >= 10
+    alphabetic_data = data_np[alphabetic_mask]
+    
+    if alphabetic_data.size == 0:
+        return np.empty((0, 13))  # Return empty array if no data
+    
+    # Extract predicted classes and distances
+    predicted_classes = alphabetic_data[:, 11].astype(int)
+    distances = alphabetic_data[:, 13]
+    total_samples = len(alphabetic_data)
+    
+    # Define thresholds
+    thresholds = np.array([0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05])
+    num_thresholds = len(thresholds)
+    
+    # Vectorized computation of distance masks
+    distance_masks = distances[:, np.newaxis] <= thresholds
+    
+    # Initialize counts for each digit and threshold
+    counts = np.zeros((10, num_thresholds), dtype=int)
+    for d in range(10):
+        mask_d = (predicted_classes == d)
+        counts[d] = np.sum(mask_d[:, np.newaxis] & distance_masks, axis=0)
+    
+    # Compute TBT and TAT
+    tbt = counts.sum(axis=0)
+    tat = total_samples - tbt
+    
+    # Build the result array
+    result = []
+    for i in range(num_thresholds):
+        th = thresholds[i]
+        row = [th] + counts[:, i].tolist() + [tbt[i], tat[i]]
+        result.append(row)
+    
+    return np.array(result)
+
+# ChatGPT 03-mini-high
+# https://chatgpt.com/c/67c44e41-82b4-800f-9352-9ff02e186a5b
+def create_alphabetic_table(data_np):
+    """
+    Creates a summary table for alphabetic characters (true class >= 10)
+    from the provided data_np array.
+
+    The input data_np is assumed to have the following columns:
+      - Columns 0-9: Softmax outputs (for digits 0-9)
+      - Column 10: True class (0-9 for digits, >=10 for alphabetic characters)
+      - Column 11: Predicted class (always a digit 0-9)
+      - Column 12: Distance to true class centroid
+      - Column 13: Distance to predicted class centroid
+
+    The output table has 13 columns:
+      - Column 0: "Threshold" with values [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
+      - Columns 1-10: Counts for each predicted digit (0-9) where the distance (column 13) is <= threshold.
+      - Column 11: "TBT" (Total Below Threshold) = total rows with distance <= threshold.
+      - Column 12: "TAT" (Total Above Threshold) = total rows with distance > threshold.
+    """
+    # Define the thresholds (in order: 0.9, 0.8, ..., 0.1, then 0.05)
+    thresholds = np.array([0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05])
+    
+    # Filter to only include rows for alphabetic characters.
+    # We assume alphabetic characters have true class >= 10.
+    alpha_mask = data_np[:, 10] >= 10
+    alpha_data = data_np[alpha_mask]
+    
+    # For alphabetic rows, use the predicted class (column 11) and
+    # the distance to the predicted class centroid (column 13).
+    predicted_digits = alpha_data[:, 11].astype(int)  # Ensure integer type for digit matching.
+    distances = alpha_data[:, 13]
+    
+    table_rows = []
+    
+    # Loop over each threshold value.
+    for thresh in thresholds:
+        row = [thresh]
+        # For each predicted digit (0 to 9), count rows with distance <= thresh.
+        digit_counts = [
+            np.sum((predicted_digits == d) & (distances <= thresh))
+            for d in range(10)
+        ]
+        row.extend(digit_counts)
+        # TBT: Total Below Threshold (all rows with distance <= thresh).
+        tbt = np.sum(distances <= thresh)
+        # TAT: Total Above Threshold (all rows with distance > thresh).
+        tat = np.sum(distances > thresh)
+        row.extend([tbt, tat])
+        table_rows.append(row)
+    
+    # Convert to numpy array and return.
+    return np.array(table_rows)
+
+# Example usage:
+# table = create_alphabetic_table(data_np)
+# print(table)
+
+# Grok 3 - modded for range 0.8 to 0.02
+# https://x.com/i/grok?conversation=1896175820466475142
+def create_alpha_threshold_table(data_np):
+    # Define thresholds from 0.8 to 0.1 in steps of 0.1, plus 0.05 and 0.02
+    thresholds = np.concatenate([np.arange(0.8, 0.0, -0.1), [0.05], [0.02]])
+    
+    # Identify alphabetic characters (true class >= 10 since 0-9 are digits)
+    alpha_mask = data_np[:, 10] >= 10  # Column 10 is true class
+    alpha_data = data_np[alpha_mask]
+    
+    # Initialize output array: 10 rows (thresholds) × 13 columns
+    # Columns: Threshold, 0-9, TBT, TAT
+    table_data = np.zeros((len(thresholds), 13))
+    
+    # Set threshold values in first column
+    table_data[:, 0] = thresholds
+    
+    # For each threshold
+    for i, thresh in enumerate(thresholds):
+        # Get rows where predicted class is 0-9 (digits) for alphabetic chars
+        pred_digits = alpha_data[:, 11]  # Column 11 is predicted class
+        distances = alpha_data[:, 13]    # Column 13 is distance to predicted centroid
+        
+        # Count predictions for each digit (0-9) below threshold
+        for digit in range(10):
+            digit_mask = (pred_digits == digit) & (distances <= thresh) & (~np.isnan(distances))
+            table_data[i, digit + 1] = np.sum(digit_mask)
+        
+        # Calculate TBT (Total Below Threshold)
+        below_mask = (distances <= thresh) & (~np.isnan(distances))
+        table_data[i, 11] = np.sum(below_mask)
+        
+        # Calculate TAT (Total Above Threshold)
+        above_mask = (distances > thresh) & (~np.isnan(distances))
+        table_data[i, 12] = np.sum(above_mask)
+    
+    return table_data
+
+# Example usage:
+# result = create_alpha_threshold_table(data_np)
+# For your specific example, result would be a 10×13 array where:
+# - Column 0: [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
+# - Columns 1-10: Counts of alphabetic chars predicted as digits 0-9 below threshold
+# - Column 11: TBT (sum of columns 1-10 for that threshold)
+# - Column 12: TAT (count of predictions above threshold)
+
+# import os
+# import numpy as np
+# import matplotlib.pyplot as plt
+
+# https://chatgpt.com/c/67c46b79-8f2c-800f-a137-5b64194514e0
+def create_and_save_heatmaps(data_np, filename=None, save=False):
+    """
+    Creates two side-by-side heatmaps for uppercase (A-Z) and lowercase (a-z)
+    misclassifications as digits (0-9) from the provided data_np and saves the
+    figure to ../figures directory.
+    
+    Parameters:
+        data_np (np.array): The numpy array containing the prediction data.
+        save_filename (str): The filename for the saved figure.
+    """
+    # Extract true and predicted classes
+    true_classes = data_np[:, 10]
+    pred_classes = data_np[:, 11]
+
+    # Create counts for uppercase letters (A-Z, true classes 10-35)
+    upper_counts = np.zeros((26, 10), dtype=int)
+    mask_upper = (true_classes >= 10) & (true_classes <= 35) & (pred_classes < 10)
+    for t, p in zip(true_classes[mask_upper], pred_classes[mask_upper]):
+        row_idx = int(t) - 10  # Map true class 10->row 0, ..., 35->row 25
+        col_idx = int(p)       # Digit 0-9
+        upper_counts[row_idx, col_idx] += 1
+
+    # Create counts for lowercase letters (a-z, true classes 36-61)
+    lower_counts = np.zeros((26, 10), dtype=int)
+    mask_lower = (true_classes >= 36) & (true_classes <= 61) & (pred_classes < 10)
+    for t, p in zip(true_classes[mask_lower], pred_classes[mask_lower]):
+        row_idx = int(t) - 36  # Map true class 36->row 0, ..., 61->row 25
+        col_idx = int(p)
+        lower_counts[row_idx, col_idx] += 1
+
+    # Create figure and axes
+    fig, axs = plt.subplots(1, 2, figsize=(12, 8))
+
+    # Fixed color range from 0 to 60 for consistency in color mapping
+    vmin, vmax = 0, 60
+
+    # Plot uppercase heatmap (without a colorbar)
+    im0 = axs[0].imshow(upper_counts, cmap="Reds", aspect="auto", vmin=vmin, vmax=vmax)
+    # Annotate the counts for uppercase
+    for i in range(upper_counts.shape[0]):
+        for j in range(upper_counts.shape[1]):
+            axs[0].text(j, i, str(upper_counts[i, j]), ha="center", va="center", color="black")
+    axs[0].set_xticks(np.arange(10))
+    axs[0].set_xticklabels([str(d) for d in range(10)])
+    axs[0].set_yticks(np.arange(26))
+    axs[0].set_yticklabels([chr(65 + i) for i in range(26)])  # 'A' to 'Z'
+    axs[0].set_title("Uppercase Misclassifications")
+
+    # Plot lowercase heatmap (with a colorbar)
+    im1 = axs[1].imshow(lower_counts, cmap="Reds", aspect="auto", vmin=vmin, vmax=vmax)
+    # Annotate the counts for lowercase
+    for i in range(lower_counts.shape[0]):
+        for j in range(lower_counts.shape[1]):
+            axs[1].text(j, i, str(lower_counts[i, j]), ha="center", va="center", color="black")
+    axs[1].set_xticks(np.arange(10))
+    axs[1].set_xticklabels([str(d) for d in range(10)])
+    axs[1].set_yticks(np.arange(26))
+    axs[1].set_yticklabels([chr(97 + i) for i in range(26)])  # 'a' to 'z'
+    axs[1].set_title("Lowercase Misclassifications")
+
+    # Add a colorbar only to the second heatmap
+    cbar = fig.colorbar(im1, ax=axs[1])
+    cbar.set_label("Count", rotation=270, labelpad=15)
+
+    plt.tight_layout()
+
+    if save and filename:
+        # Ensure the save directory exists
+        # save_dir = os.path.join("..", "figures")
+        # os.makedirs(save_dir, exist_ok=True)
+        # save_path = os.path.join(save_dir, save_filename)
+
+        # # Save the figure
+        # plt.savefig(save_path)
+        # plt.close(fig)
+        # print(f"Figure saved to {save_path}")
+
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        print(f"Saved alphabetic misclassifications {filename}")          
+
+# Example usage:
+# Assuming data_np is already defined:
+# create_and_save_heatmaps(data_np)

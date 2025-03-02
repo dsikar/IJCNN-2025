@@ -1,0 +1,25 @@
+Given a numpy array alpha_threshold_table that contains the data:
+
+Alphabetic Character Prediction Threshold Table:
+------------------------------------------------------------------------------------------------------------------------
+Threshold  0          1          2          3          4          5          6          7          8          9          TBT        TAT        
+------------------------------------------------------------------------------------------------------------------------
+0.80       528        365        242        85         493        239        223        108        517        60         2860       0          
+0.70       518        359        236        81         481        229        212        104        508        58         2786       74         
+0.60       497        333        217        68         461        205        195        93         459        51         2579       281        
+0.50       470        304        201        52         440        184        174        87         414        47         2373       487        
+0.40       442        272        181        44         420        157        153        75         365        37         2146       714        
+0.30       407        238        167        38         397        141        124        61         317        33         1923       937        
+0.20       365        206        147        25         368        122        98         48         253        27         1659       1201       
+0.10       320        154        127        16         314        100        76         32         183        22         1344       1516       
+0.05       272        125        111        10         274        77         57         22         140        18         1106       1754       
+0.02       228        101        71         8          240        56         30         18         12         10         774        2086  
+
+Create a latex formatted table where first column header is abbreviated to Thresh, and all digit column headers are the digit and a percentage sign inside parenthesis e.g. "0 (%)", and the same is added to TBT and TAT e.g. "TAT (%)
+
+The first row are totals for digits and for TBT (total below threshold) and TAT (Total above threshold). So for the first rows, all percentages would be 100%, except TAT which would be 0%.
+From the second row onwards, the percentage would be calculated with respect to the first row i.e. the remaining percentage below threshold. The exception is column TAT, that is 100% - TBT.
+
+Format all percentages to 1 decimal place
+
+If you have any questions, ask.
