@@ -272,20 +272,20 @@ def plot_heatmap(data_np_with_distances, cifar10_classes, filename=None, save=Fa
     
     # Create the heatmap
     plt.figure(figsize=(12, 8))
-    plt.imshow(confusion_matrix, cmap='Reds', aspect='auto')
+    plt.imshow(confusion_matrix, cmap='Reds', aspect='auto', vmin=0, vmax=3000)
     
     # Customize the plot
     plt.colorbar(label='Number of Classifications')
-    plt.xlabel('MNIST Predicted Class')
-    plt.ylabel('CIFAR10 True Class')
-    plt.title('Confusion Matrix for CIFAR10 Images')
+    plt.xlabel('MNIST Predicted Class', fontsize=14, fontweight='bold')
+    plt.ylabel('CIFAR10 True Class', fontsize=14, fontweight='bold')
+    plt.title('Confusion Matrix Counts For Grayscale 28x28 (MNIST Format) CIFAR10 Images', fontsize=16, fontweight='bold')
     plt.xticks(np.arange(len(cifar10_classes)), range(10), rotation=0)
     plt.yticks(np.arange(len(cifar10_classes)), cifar10_classes)
     
     # Annotate the heatmap
     for i in range(len(cifar10_classes)):
         for j in range(len(cifar10_classes)):
-            plt.text(j, i, int(confusion_matrix[i, j]), ha='center', va='center', color='black')
+            plt.text(j, i, int(confusion_matrix[i, j]), ha='center', va='center', color='black', fontsize=12)
     
     plt.tight_layout()
     
@@ -300,6 +300,69 @@ def plot_heatmap(data_np_with_distances, cifar10_classes, filename=None, save=Fa
 plot_heatmap(data_np_with_distances, cifar10_classes, filename="figures/mnistified_cifar10_heatmap.png", save=True)
 # Total counts in confusion matrix: 50000.0
 # Heatmap saved as figures/mnistified_cifar10_heatmap.png
+
+def plot_heatmap_percentages(data_np_with_distances, cifar10_classes, filename=None, save=False):
+    """
+    Plot a heatmap of the confusion matrix for CIFAR10 images with percentages.
+    
+    Parameters:
+    -----------
+    data_np_with_distances : numpy.ndarray
+        Array containing the data where:
+        - Columns 0-9: Softmax outputs
+        - Column 10: True class
+        - Column 11: Predicted class
+        - Column 12: Distance to true class centroid        
+    cifar10_classes : list
+        List of CIFAR10 class names.
+    filename : str, optional
+        The filename to save the plot. Default is None.
+    save : bool, optional
+        Flag to save the plot. Default is False.
+    """
+    # Initialize the confusion matrix
+    confusion_matrix = np.zeros((len(cifar10_classes), len(cifar10_classes)))
+    # i: Index for the true class
+    # j: Index for the predicted class
+    for i in range(len(cifar10_classes)):
+        for j in range(len(cifar10_classes)):
+            confusion_matrix[i, j] = np.sum((data_np_with_distances[:, 10] == i) & (data_np_with_distances[:, 11] == j))
+    
+    # Convert counts to percentages
+    row_sums = confusion_matrix.sum(axis=1, keepdims=True)
+    confusion_matrix_percentages = np.divide(confusion_matrix, row_sums, where=row_sums != 0) * 100
+    
+    # Sanity check print to count the totals in the confusion matrix
+    print(f"Total counts in confusion matrix: {np.sum(confusion_matrix)}")
+    
+    # Create the heatmap
+    plt.figure(figsize=(12, 8))
+    plt.imshow(confusion_matrix_percentages, cmap='Reds', aspect='auto', vmin=0, vmax=60)
+    
+    # Customize the plot
+    plt.colorbar(label='Percentage of Classifications')
+    plt.xlabel('MNIST Predicted Class', fontsize=14, fontweight='bold')
+    plt.ylabel('CIFAR10 True Class', fontsize=14, fontweight='bold')
+    plt.title('Confusion Matrix Percentages For Grayscale 28x28 (MNIST Format) CIFAR10 Images', fontsize=14, fontweight='bold')
+    plt.xticks(np.arange(len(cifar10_classes)), range(10), rotation=0)
+    plt.yticks(np.arange(len(cifar10_classes)), cifar10_classes)
+    
+    # Annotate the heatmap
+    for i in range(len(cifar10_classes)):
+        for j in range(len(cifar10_classes)):
+            plt.text(j, i, f'{confusion_matrix_percentages[i, j]:.1f}%', ha='center', va='center', color='black', fontsize=12)
+    
+    plt.tight_layout()
+    
+    # Save the plot if required
+    if save and filename:
+        plt.savefig(filename)
+        print(f"Heatmap saved as {filename}")
+    else:
+        plt.show()
+
+plot_heatmap_percentages(data_np_with_distances, cifar10_classes, filename="figures/mnistified_cifar10_heatmap_percentages.png", save=True)
+# Heatmap saved as figures/mnistified_cifar10_heatmap_percentages.png
 
 def create_cifar_mnist_table(data_np):
     """
