@@ -82,7 +82,7 @@ def min_distances_by_predicted_class(data_np_with_distances):
     """
     min_distances = np.zeros(10)
     for i in range(10):
-        class_distances = data_np_with_distances[(data_np_with_distances[:, 10] == j) & (data_np_with_distances[:, 11] == i), 12]
+        class_distances = data_np_with_distances[data_np_with_distances[:, 11] == i, 12]
         min_distances[i] = np.min(class_distances) if len(class_distances) > 0 else np.nan
     return min_distances
 
