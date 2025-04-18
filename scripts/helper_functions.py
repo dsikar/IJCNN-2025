@@ -690,6 +690,80 @@ def plot_thresholds_comparison(thresholds_same, thresholds_different, prefix="",
     if save:
         plt.savefig(filename)
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+def plot_thresholds_comparison_canonical_x_axis(thresholds_same, thresholds_different, dataset="mnist", prefix="", filename="", save=False):
+    """
+    Plot threshold pairs for same and different cases side by side with dataset-specific labels.
+    
+    Parameters:
+    -----------
+    thresholds_same : numpy.ndarray
+        Array of thresholds for same class
+    thresholds_different : numpy.ndarray
+        Array of thresholds for different class
+    dataset : str
+        Dataset name ('mnist' or 'cifar10') to determine x-axis labels
+    prefix : str
+        Prefix for the plot title
+    filename : str
+        File name to save the plot (if save is True)
+    save : bool
+        Whether to save the plot to a file
+    """
+    # Define class labels for each dataset
+    if dataset.lower() == "mnist":
+        class_labels = [str(i) for i in range(10)]  # Digits 0-9
+    elif dataset.lower() == "cifar10":
+        class_labels = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+                        'dog', 'frog', 'horse', 'ship', 'truck']  # CIFAR-10 labels
+    else:
+        raise ValueError("Dataset must be 'mnist' or 'cifar10'")
+
+    # Create figure and axis
+    plt.figure(figsize=(12, 5))
+    
+    # Set the positions for the bars
+    x = np.arange(len(thresholds_same))
+    width = 0.35
+    
+    # Create the bars
+    plt.bar(x - width/2, thresholds_same, width, label='Same Class', color='skyblue')
+    plt.bar(x + width/2, thresholds_different, width, label='Different Class', color='lightcoral')
+    
+    # Customize the plot
+    plt.yscale('log')  # Use log scale since values are very different
+    plt.xlabel('Class')
+    plt.ylabel('Threshold Value (log scale)')
+    plt.title(f"{prefix} Threshold Comparison: True misclassified vs Predicted misclassified")
+    plt.legend()
+
+    # Move legend to bottom right
+    plt.legend(loc='lower right')
+    
+    # Set x-ticks with dataset-specific labels
+    plt.xticks(x, class_labels, rotation=45 if dataset.lower() == "cifar10" else 0)
+    
+    # Add grid for better readability
+    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+    
+    # Add value annotations
+    for i in range(len(thresholds_same)):
+        # Annotate Same Class threshold
+        plt.text(i - width/2, thresholds_same[i], f'{thresholds_same[i]:.3f}', 
+                 ha='center', va='bottom', rotation=0)
+        # Annotate Different Class threshold
+        plt.text(i + width/2, thresholds_different[i], f'{thresholds_different[i]:.3f}', 
+                 ha='center', va='bottom', rotation=0)
+    
+    plt.tight_layout()
+    plt.show()    
+
+    if save:
+        plt.savefig(filename)
+        plt.close()
+
 def plot_alphabetic_distances(min_distances, avg_distances, prefix="", filename="", save=False):
     """
     Plot bar charts for average and minimum distances of alphabetic characters to digit centroids.
